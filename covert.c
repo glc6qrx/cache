@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include <unistd.h>
+
 #ifdef _MSC_VER
 #include <intrin.h> /* for rdtscp and clflush */
 #pragma optimize("gt",on)
@@ -124,8 +125,52 @@ void trojan(char byte)
     /* TODO:
      * Your attack code goes in here.
      *
-     */  
+     */ 
 
+    /*eviction_set_addr=(uint64_t*)get_eviction_set_address(trojan_array, set, 0);
+    int i;
+    for(i = 1; i < ASSOCIATIVITY; i++){
+        *eviction_set_addr = (uint64_t)get_eviction_set_address(trojan_array, set, i);
+        eviction_set_addr = (uint64_t *)(*eviction_set_addr);
+    }
+    eviction_set_addr = 0;*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    eviction_set_addr=(uint64_t*)get_eviction_set_address(trojan_array, set, 0);
+    while (eviction_set_addr != NULL){
+        eviction_set_addr = (uint64_t*) *eviction_set_addr;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    /*uint64_t i;
+    for(i = 0; i < 32*4096; i++){
+        if(trojan_array[i] >> NUM_OFFSET_BITS) & 0x3f == set){
+            
+        }
+    }*/
 }
 
 /* TODO:
@@ -150,12 +195,34 @@ char spy()
     int i, max_set;
     uint64_t *eviction_set_addr;
 
+    int max_time = 0;
+    int before;
+    int after;
     // Probe the cache line by line and take measurements
     for (i = 0; i < L1_NUM_SETS; i++) {
+        max_set = 0;
         /* TODO:
          * Your attack code goes in here.
          *
          */  
+        RDTSC(before);
+        CPUID();
+        eviction_set_addr=(uint64_t*)get_eviction_set_address(trojan_array, i, 0);
+        RDTSC(after);
+        max_time = after - before;
+
+        while (eviction_set_addr != NULL){
+            
+            RDTSC(before);
+            CPUID();
+            eviction_set_addr = (uint64_t*) *eviction_set_addr;
+            RDTSC(after);
+
+            if(max_time < after - before){
+                max_set = i;
+                max_time = after - before;
+            }
+        }
     }
     eviction_counts[max_set]++;
 }
