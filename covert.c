@@ -21,7 +21,7 @@
 // Intrinsic CLFLUSH for FLUSH+RELOAD attack
 #define CLFLUSH(address) _mm_clflush(address);
 
-#define SAMPLES 10000 // TODO: CONFIGURE THIS
+#define SAMPLES 50 // TODO: CONFIGURE THIS
 
 #define L1_CACHE_SIZE (32*1024)
 #define LINE_SIZE 64
@@ -150,13 +150,13 @@ void trojan(char byte)
 
 
     eviction_set_addr=(uint64_t*)get_eviction_set_address(trojan_array, set, 0);
-    while (eviction_set_addr != NULL){
+    while (eviction_set_addr != 0){
         eviction_set_addr = (uint64_t*) *eviction_set_addr;
     }
 
 
 
-
+    CPUID();
 
 
 
@@ -194,34 +194,35 @@ char spy()
 {
     int i, max_set;
     uint64_t *eviction_set_addr;
-
     int max_time = 0;
     int before;
     int after;
     // Probe the cache line by line and take measurements
+    
     for (i = 0; i < L1_NUM_SETS; i++) {
-        max_set = 0;
+        //max_set = 0;
         /* TODO:
          * Your attack code goes in here.
          *
          */  
+
+        
         RDTSC(before);
-        CPUID();
+        CPUID(); 
         eviction_set_addr=(uint64_t*)get_eviction_set_address(trojan_array, i, 0);
-        RDTSC(after);
-        max_time = after - before;
-
-        while (eviction_set_addr != NULL){
+        
+        
+        
+        while (eviction_set_addr != 0){
             
-            RDTSC(before);
-            CPUID();
             eviction_set_addr = (uint64_t*) *eviction_set_addr;
-            RDTSC(after);
-
-            if(max_time < after - before){
-                max_set = i;
-                max_time = after - before;
-            }
+            
+        }
+        
+        RDTSC(after)
+        if(max_time < after - before){
+            max_set = i;
+            max_time = after - before;
         }
     }
     eviction_counts[max_set]++;
@@ -237,7 +238,7 @@ int main()
     int max_count, max_set;
 
     // TODO: CONFIGURE THIS -- currently, 32*assoc to force eviction out of L2
-    setup(trojan_array, ASSOCIATIVITY*32);
+    setup(trojan_array, ASSOCIATIVITY*16);
 
     setup(spy_array, ASSOCIATIVITY);
     
@@ -248,6 +249,7 @@ int main()
         }
         for (k = 0; k < SAMPLES; k++) {
           trojan(msg);
+          //CPUID();
           spy();
         }
         for (j = 0; j < L1_NUM_SETS; j++) {
