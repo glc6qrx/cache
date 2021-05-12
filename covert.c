@@ -199,7 +199,7 @@ char spy()
         
         
         RDTSC(before);
-        CPUID();
+        
         eviction_set_addr=(uint64_t*)get_eviction_set_address(spy_array, i, 0);
         
         while (eviction_set_addr != 0){
