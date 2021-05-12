@@ -139,16 +139,6 @@ void trojan(char byte)
 
 
 
-
-
-
-
-
-
-
-
-
-
     eviction_set_addr=(uint64_t*)get_eviction_set_address(trojan_array, set, 0);
     while (eviction_set_addr != 0){
         eviction_set_addr = (uint64_t*) *eviction_set_addr;
@@ -207,14 +197,13 @@ char spy()
          */  
 
         
+        
         RDTSC(before);
-        CPUID(); 
-        eviction_set_addr=(uint64_t*)get_eviction_set_address(trojan_array, i, 0);
-        
-        
+        CPUID();
+        eviction_set_addr=(uint64_t*)get_eviction_set_address(spy_array, i, 0);
         
         while (eviction_set_addr != 0){
-            
+            CPUID();  
             eviction_set_addr = (uint64_t*) *eviction_set_addr;
             
         }
@@ -238,7 +227,7 @@ int main()
     int max_count, max_set;
 
     // TODO: CONFIGURE THIS -- currently, 32*assoc to force eviction out of L2
-    setup(trojan_array, ASSOCIATIVITY*16);
+    setup(trojan_array, ASSOCIATIVITY*32);
 
     setup(spy_array, ASSOCIATIVITY);
     
